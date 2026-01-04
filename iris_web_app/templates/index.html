@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Iris Flower Prediction App - Predict iris flower species using machine learning with 3D visualization">
+    <title>🌸 Iris Flower Predictor | ML + 3D Visualization</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <span class="logo">🌸</span>
+            <span class="brand-text">Iris Predictor</span>
+        </div>
+        <div class="nav-actions">
+            <button class="help-btn" id="helpBtn" aria-label="Help Guide">
+                <span>❓</span>
+                <span class="btn-label">Help</span>
+            </button>
+            <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+                <span class="icon sun">☀️</span>
+                <span class="icon moon">🌙</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Help Modal -->
+    <div class="modal-overlay" id="helpModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>📚 How to Use This App</h2>
+                <button class="modal-close" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="help-section">
+                    <h3>🔮 Making Predictions</h3>
+                    <ol>
+                        <li>Enter the flower measurements in centimeters:
+                            <ul>
+                                <li><strong>Sepal Length:</strong> Length of the sepal (typical range: 4.3 - 7.9 cm)
+                                </li>
+                                <li><strong>Sepal Width:</strong> Width of the sepal (typical range: 2.0 - 4.4 cm)</li>
+                                <li><strong>Petal Length:</strong> Length of the petal (typical range: 1.0 - 6.9 cm)
+                                </li>
+                                <li><strong>Petal Width:</strong> Width of the petal (typical range: 0.1 - 2.5 cm)</li>
+                            </ul>
+                        </li>
+                        <li>Click the <strong>"Predict Species"</strong> button</li>
+                        <li>View the prediction result with confidence percentage</li>
+                    </ol>
+                </div>
+
+                <div class="help-section">
+                    <h3>📊 Viewing Charts</h3>
+                    <p>Click the chart buttons to visualize the Iris dataset:</p>
+                    <ul>
+                        <li><strong>2D Charts:</strong> View scatter plots and feature distributions</li>
+                        <li><strong>3D Chart:</strong> Interactive 3D visualization of the dataset</li>
+                        <li><strong>3D PCA:</strong> Principal Component Analysis in 3D</li>
+                    </ul>
+                </div>
+
+                <div class="help-section">
+                    <h3>🌙 Dark Mode</h3>
+                    <p>Click the sun/moon button in the navbar to toggle between light and dark themes. Your preference
+                        is saved automatically!</p>
+                </div>
+
+                <div class="help-section">
+                    <h3>🌸 About Iris Species</h3>
+                    <div class="species-grid">
+                        <div class="species-item">
+                            <span class="species-emoji">🌸</span>
+                            <strong>Setosa</strong>
+                            <p>Smallest species, Arctic origin</p>
+                        </div>
+                        <div class="species-item">
+                            <span class="species-emoji">🌺</span>
+                            <strong>Versicolor</strong>
+                            <p>Medium size, wetland habitat</p>
+                        </div>
+                        <div class="species-item">
+                            <span class="species-emoji">🌷</span>
+                            <strong>Virginica</strong>
+                            <p>Largest species, E. North America</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="help-section">
+                    <h3>⚡ Quick Tips</h3>
+                    <ul>
+                        <li>Use sample values from the info cards below the form</li>
+                        <li>The model is most confident when values are within typical ranges</li>
+                        <li>Charts help you understand how different species cluster</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-primary" id="closeModalBtn">Got it! 👍</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart Modal -->
+    <div class="modal-overlay" id="chartModal">
+        <div class="modal modal-large">
+            <div class="modal-header">
+                <h2 id="chartTitle">📊 Dataset Visualization</h2>
+                <button class="modal-close" id="closeChartModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="chart-loading" id="chartLoading">
+                    <div class="spinner"></div>
+                    <p>Generating chart...</p>
+                </div>
+                <img id="chartImage" class="chart-image" alt="Chart" style="display: none;">
+            </div>
+            <div class="modal-footer">
+                <div class="chart-buttons">
+                    <button class="btn-chart" data-chart="2d">📈 2D Charts</button>
+                    <button class="btn-chart" data-chart="3d">🎲 3D View</button>
+                    <button class="btn-chart" data-chart="3d/pca">🧬 3D PCA</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <main class="container">
+        <!-- Hero Section -->
+        <section class="hero">
+            <h1 class="hero-title">
+                <span class="gradient-text">Iris Flower</span>
+                <span>Predictor</span>
+            </h1>
+            <p class="hero-subtitle">
+                Harness the power of Machine Learning to identify Iris flower species
+            </p>
+            <div class="hero-badges">
+                <span class="badge">🤖 KNN Model</span>
+                <span class="badge">📊 3D Charts</span>
+                <span class="badge">🌙 Dark Mode</span>
+            </div>
+        </section>
+
+        <!-- Prediction Card -->
+        <div class="prediction-card">
+            <div class="card-header">
+                <h2>Enter Flower Measurements</h2>
+                <p>Input the sepal and petal dimensions in centimeters</p>
+            </div>
+
+            <form action="/predict" method="POST" class="prediction-form">
+                <div class="input-grid">
+                    <!-- Sepal Length -->
+                    <div class="input-group">
+                        <label for="sepal_length">
+                            <span class="input-icon">📏</span>
+                            Sepal Length (cm)
+                        </label>
+                        <input type="number" id="sepal_length" name="sepal_length" step="0.1" min="0.1" max="10"
+                            placeholder="e.g., 5.1"
+                            value="{{ prediction.input_values.sepal_length if prediction else '' }}" required>
+                        <span class="input-hint">Range: 4.3 - 7.9 cm</span>
+                    </div>
+
+                    <!-- Sepal Width -->
+                    <div class="input-group">
+                        <label for="sepal_width">
+                            <span class="input-icon">📐</span>
+                            Sepal Width (cm)
+                        </label>
+                        <input type="number" id="sepal_width" name="sepal_width" step="0.1" min="0.1" max="10"
+                            placeholder="e.g., 3.5"
+                            value="{{ prediction.input_values.sepal_width if prediction else '' }}" required>
+                        <span class="input-hint">Range: 2.0 - 4.4 cm</span>
+                    </div>
+
+                    <!-- Petal Length -->
+                    <div class="input-group">
+                        <label for="petal_length">
+                            <span class="input-icon">🌿</span>
+                            Petal Length (cm)
+                        </label>
+                        <input type="number" id="petal_length" name="petal_length" step="0.1" min="0.1" max="10"
+                            placeholder="e.g., 1.4"
+                            value="{{ prediction.input_values.petal_length if prediction else '' }}" required>
+                        <span class="input-hint">Range: 1.0 - 6.9 cm</span>
+                    </div>
+
+                    <!-- Petal Width -->
+                    <div class="input-group">
+                        <label for="petal_width">
+                            <span class="input-icon">🍃</span>
+                            Petal Width (cm)
+                        </label>
+                        <input type="number" id="petal_width" name="petal_width" step="0.1" min="0.1" max="10"
+                            placeholder="e.g., 0.2"
+                            value="{{ prediction.input_values.petal_width if prediction else '' }}" required>
+                        <span class="input-hint">Range: 0.1 - 2.5 cm</span>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button type="submit" class="predict-btn">
+                        <span class="btn-icon">🔮</span>
+                        <span class="btn-text">Predict Species</span>
+                        <span class="btn-shine"></span>
+                    </button>
+                    <button type="button" class="chart-btn" id="showChartBtn">
+                        <span class="btn-icon">📊</span>
+                        <span class="btn-text">View Charts</span>
+                    </button>
+                </div>
+            </form>
+
+            <!-- Error Message -->
+            {% if error %}
+            <div class="error-message">
+                <span class="error-icon">⚠️</span>
+                <span>{{ error }}</span>
+            </div>
+            {% endif %}
+
+            <!-- Prediction Result -->
+            {% if prediction %}
+            <div class="result-section">
+                <div class="result-card" style="--accent-color: {{ prediction.color }}">
+                    <div class="result-emoji">{{ prediction.emoji }}</div>
+                    <h3 class="result-title">{{ prediction.flower_name }}</h3>
+                    <div class="confidence-badge">
+                        <span class="confidence-icon">📊</span>
+                        <span>Confidence: {{ prediction.confidence }}</span>
+                    </div>
+                    <p class="result-description">{{ prediction.description }}</p>
+
+                    <!-- Probability Bars -->
+                    <div class="probability-section">
+                        <h4>All Probabilities</h4>
+                        {% for name, prob in prediction.all_probabilities.items() %}
+                        <div class="prob-bar-container">
+                            <span class="prob-label">{{ name }}</span>
+                            <div class="prob-bar">
+                                <div class="prob-fill" style="width: {{ prob }}%"></div>
+                            </div>
+                            <span class="prob-value">{{ prob }}%</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Fun Facts -->
+                    {% if prediction.facts %}
+                    <div class="facts-section">
+                        <h4>🌿 Fun Facts</h4>
+                        <ul class="facts-list">
+                            {% for fact in prediction.facts %}
+                            <li>{{ fact }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Quick Fill Cards -->
+        <section class="quick-fill-section">
+            <h2 class="section-title">🎯 Try Sample Values</h2>
+            <div class="quick-fill-grid">
+                <button class="quick-fill-card setosa" data-sl="5.0" data-sw="3.4" data-pl="1.5" data-pw="0.2">
+                    <span class="qf-emoji">🌸</span>
+                    <span class="qf-name">Setosa</span>
+                    <span class="qf-values">5.0, 3.4, 1.5, 0.2</span>
+                </button>
+                <button class="quick-fill-card versicolor" data-sl="6.0" data-sw="2.7" data-pl="4.5" data-pw="1.5">
+                    <span class="qf-emoji">🌺</span>
+                    <span class="qf-name">Versicolor</span>
+                    <span class="qf-values">6.0, 2.7, 4.5, 1.5</span>
+                </button>
+                <button class="quick-fill-card virginica" data-sl="6.7" data-sw="3.0" data-pl="5.5" data-pw="2.1">
+                    <span class="qf-emoji">🌷</span>
+                    <span class="qf-name">Virginica</span>
+                    <span class="qf-values">6.7, 3.0, 5.5, 2.1</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Info Cards -->
+        <section class="info-section">
+            <h2 class="section-title">About Iris Species</h2>
+            <div class="info-grid">
+                <div class="info-card setosa">
+                    <div class="info-emoji">🌸</div>
+                    <h3>Iris Setosa</h3>
+                    <p>Small, delicate petals with distinctive purple/blue coloring. Native to Asia and North America.
+                    </p>
+                    <div class="info-stats">
+                        <span>Sepal: 4.3-5.8 cm</span>
+                        <span>Petal: 1.0-1.9 cm</span>
+                    </div>
+                </div>
+                <div class="info-card versicolor">
+                    <div class="info-emoji">🌺</div>
+                    <h3>Iris Versicolor</h3>
+                    <p>Also called "Blue Flag", features beautiful purple-blue flowers. Common in North America.</p>
+                    <div class="info-stats">
+                        <span>Sepal: 4.9-7.0 cm</span>
+                        <span>Petal: 3.0-5.1 cm</span>
+                    </div>
+                </div>
+                <div class="info-card virginica">
+                    <div class="info-emoji">🌷</div>
+                    <h3>Iris Virginica</h3>
+                    <p>The largest species with striking violet-blue flowers. Found in eastern North America.</p>
+                    <div class="info-stats">
+                        <span>Sepal: 4.9-7.9 cm</span>
+                        <span>Petal: 4.5-6.9 cm</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dataset Stats Section -->
+        <section class="stats-section">
+            <h2 class="section-title">📈 Dataset Statistics</h2>
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card">
+                    <div class="stat-icon">📊</div>
+                    <div class="stat-value">150</div>
+                    <div class="stat-label">Total Samples</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🔢</div>
+                    <div class="stat-value">4</div>
+                    <div class="stat-label">Features</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🌺</div>
+                    <div class="stat-value">3</div>
+                    <div class="stat-label">Classes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🎯</div>
+                    <div class="stat-value">~97%</div>
+                    <div class="stat-label">Model Accuracy</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>Built with 💜 using Flask, sklearn & Matplotlib</p>
+        <p class="footer-sub">KNN Classification • 3D Visualization • Dark Mode</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+</body>
+
+</html>
