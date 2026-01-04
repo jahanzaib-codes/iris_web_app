@@ -1,3 +1,6 @@
+flask
 scikit-learn>=1.0.0
 numpy>=1.20.0
 joblib>=1.0.0
+matplotlib
+scipy
